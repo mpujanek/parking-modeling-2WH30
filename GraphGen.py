@@ -3,13 +3,20 @@ import matplotlib.pyplot as plt
 
 class GraphGen:
     def __init__(self, roadWidth, carWidth, carLength, nSpotsInRow, nBlocks):
-        # Create a graph
+        self.roadWidth = roadWidth
+        self.carWidth = carWidth
+        self.carLength = carLength
+        self.nSpotsInRow = nSpotsInRow
+        self.nBlocks = nBlocks
+
         self.G = nx.Graph()
         self.lotWidth = 2*roadWidth + nSpotsInRow*carWidth
+        self.initialize()
 
-        GraphGen.addRow(False, 0.5*roadWidth, roadWidth, self.lotWidth, nSpotsInRow, carWidth, self.G)
-        for i in range(nBlocks):
-            GraphGen.addBlock(0.5*roadWidth + (i*(2*carLength+roadWidth)), roadWidth, carLength, self.lotWidth, nSpotsInRow, carWidth, self.G)
+    def initialize(self):
+        GraphGen.addRow(False, 0.5*self.roadWidth, self.roadWidth, self.lotWidth, self.nSpotsInRow, self.carWidth, self.G)
+        for i in range(self.nBlocks):
+            GraphGen.addBlock(0.5*self.roadWidth + (i*(2*self.carLength+self.roadWidth)), self.roadWidth, self.carLength, self.lotWidth, self.nSpotsInRow, self.carWidth, self.G)
 
     def visualize(self):
         # Visualize the graph
@@ -89,4 +96,5 @@ class GraphGen:
             G.add_edge((roadWidth + (i+0.5)*carWidth, yOffset), 
                             (roadWidth + (i+0.5)*carWidth, yOffset + 0.5*roadWidth + 0.5*carLength))
 
-GraphGen(roadWidth=3, carWidth=2, carLength=5, nSpotsInRow=5, nBlocks=3)
+g = GraphGen(roadWidth=3, carWidth=2, carLength=5, nSpotsInRow=5, nBlocks=3)
+g.visualize()
