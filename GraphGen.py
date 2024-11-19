@@ -10,7 +10,8 @@ class GraphGen:
         GraphGen.addRow(False, 0.5*roadWidth, roadWidth, self.lotWidth, nSpotsInRow, carWidth, self.G)
         for i in range(nBlocks):
             GraphGen.addBlock(0.5*roadWidth + (i*(2*carLength+roadWidth)), roadWidth, carLength, self.lotWidth, nSpotsInRow, carWidth, self.G)
-        
+
+    def visualize(self):
         # Visualize the graph
         pos = {node : node for node in self.G.nodes}
         nx.draw(self.G, pos, with_labels=True, node_color='skyblue', node_size=1000, font_size=8)
