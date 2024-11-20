@@ -3,6 +3,8 @@
 ```git clone https://github.com/mpujanek/parking-modeling-2WH30.git```
 
 ## Setting up venv
+Install venv by running this command  
+```Python3 -m pip install venv```  
 To setup the venv, run setup.bat. This will setup the venv and install any dependencies.  
 
 ## Running the project
