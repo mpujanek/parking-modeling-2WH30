@@ -1,5 +1,6 @@
 import networkx as nx
 import matplotlib.pyplot as plt
+import ParkingSpotState
 
 class GraphGen:
     def __init__(self, roadWidth, carWidth, carLength, nSpotsInRow, nBlocks):
@@ -30,12 +31,12 @@ class GraphGen:
         M = nx.Graph()
 
         # leftmost and rightmost vertex
-        M.add_node((roadWidth/2, yOffset), isParkingSpace = False)
-        M.add_node((lotWidth - roadWidth/2, yOffset), isParkingSpace = False)
+        M.add_node((roadWidth/2, yOffset), isParkingSpace = False, state = ParkingSpotState.EMPTY)
+        M.add_node((lotWidth - roadWidth/2, yOffset), isParkingSpace = False, state = ParkingSpotState.EMPTY)
 
         # middle vertices
         for i in range(nSpotsInRow):
-            M.add_node((roadWidth + (i+0.5)*carWidth, yOffset), isParkingSpace = isParkingSpace)
+            M.add_node((roadWidth + (i+0.5)*carWidth, yOffset), isParkingSpace = isParkingSpace, state = ParkingSpotState.EMPTY)
             if (not isParkingSpace):
                 if (i == 0):
                     M.add_edge((roadWidth/2, yOffset), (roadWidth + (i+0.5)*carWidth, yOffset))
