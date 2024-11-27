@@ -1,6 +1,6 @@
 from enum import Enum
 
 class ParkingSpotState(Enum):
-    UNKNOWN = "Unknown"
-    EMPTY = "Empty"
-    FULL = "Full"
+    UNKNOWN = 1
+    EMPTY = 2
+    FULL = 3
