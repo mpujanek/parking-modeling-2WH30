@@ -1,10 +1,10 @@
-import GraphGen
+import ParkingGraph
 import networkx as nx
 import ParkingSpotState
 
 class Driver:
 
-    def __init__(self, G: GraphGen, position):
+    def __init__(self, G: ParkingGraph, position):
         self.G = G
         self.position = position
         self.kb = {node : ParkingSpotState.UNKNOWN for node in self.G.nodes}
