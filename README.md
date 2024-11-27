@@ -9,4 +9,4 @@ To setup the venv, run setup.bat. This will setup the venv and install any depen
 
 ## Running the project
 Any time you want to run the project, start up the venv by running ```.venv\Scripts\activate.bat```.  
-Once you are in the venv, run the program by running ```Python3 GraphGen.py```.
+Once you are in the venv, run the program by running ```Python3 ParkingGraph.py```.
