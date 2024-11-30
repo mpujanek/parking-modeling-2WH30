@@ -110,8 +110,3 @@ class ParkingGraph:
         for i in range(nSpotsInRow):
             G.add_edge((roadWidth + (i+0.5)*carWidth, yOffset), 
                             (roadWidth + (i+0.5)*carWidth, yOffset + 0.5*roadWidth + 0.5*carLength))
-
-g = ParkingGraph(roadWidth=3, carWidth=2, carLength=5, nSpotsInRow=5, nBlocks=1)
-g.initialize_basic()
-g.populate_bernoulli(0.9)
-g.visualize()
