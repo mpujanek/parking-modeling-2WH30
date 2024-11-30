@@ -1,6 +1,7 @@
 import networkx as nx
 import matplotlib.pyplot as plt
 from ParkingSpotState import ParkingSpotState
+import random
 
 class ParkingGraph:
     def __init__(self, roadWidth, carWidth, carLength, nSpotsInRow, nBlocks):
@@ -27,12 +28,17 @@ class ParkingGraph:
         # Visualize the graph
         pos = {node : node for node in self.G.nodes}
         node_colors = [
-            'red' if self.G.nodes[node].get('isParkingSpace', False) else 'skyblue'
+            'skyblue' if not self.G.nodes[node]['isParkingSpace'] else 'red' if self.G.nodes[node]['state'] == ParkingSpotState.FULL else 'green'
             for node in self.G.nodes
         ]
         nx.draw(self.G, pos, with_labels=True, node_color=node_colors, node_size=1000, font_size=8)
         plt.title("Parking Lot Graph")
         plt.show()
+
+    def populate_bernoulli(self, p):
+        for node in self.G.nodes:
+            if self.G.nodes[node]['isParkingSpace']:
+                self.G.nodes[node]['state'] = ParkingSpotState.FULL if random.random() < p else ParkingSpotState.EMPTY
 
     def createRow(isParkingSpace, yOffset, roadWidth, lotWidth, nSpotsInRow, carWidth):
         # create row as auxiliary graph 
@@ -107,4 +113,5 @@ class ParkingGraph:
 
 g = ParkingGraph(roadWidth=3, carWidth=2, carLength=5, nSpotsInRow=5, nBlocks=1)
 g.initialize_basic()
+g.populate_bernoulli(0.9)
 g.visualize()
