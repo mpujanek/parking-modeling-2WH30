@@ -17,11 +17,20 @@ class ParkingGraph:
         ParkingGraph.addRow(False, 0.5*self.roadWidth, self.roadWidth, self.lotWidth, self.nSpotsInRow, self.carWidth, self.G)
         for i in range(self.nBlocks):
             ParkingGraph.addBlock(0.5*self.roadWidth + (i*(2*self.carLength+self.roadWidth)), self.roadWidth, self.carLength, self.lotWidth, self.nSpotsInRow, self.carWidth, self.G)
+    
+    def initialize_basic(self):
+        self.initialize()
+        nodes_to_remove = [node for node in self.G.nodes if node[1]>6]
+        self.G.remove_nodes_from(nodes_to_remove)
 
     def visualize(self):
         # Visualize the graph
         pos = {node : node for node in self.G.nodes}
-        nx.draw(self.G, pos, with_labels=True, node_color='skyblue', node_size=1000, font_size=8)
+        node_colors = [
+            'red' if self.G.nodes[node].get('isParkingSpace', False) else 'skyblue'
+            for node in self.G.nodes
+        ]
+        nx.draw(self.G, pos, with_labels=True, node_color=node_colors, node_size=1000, font_size=8)
         plt.title("Parking Lot Graph")
         plt.show()
 
@@ -50,7 +59,7 @@ class ParkingGraph:
     # add row to main graph
     def addRow(isParkingSpace, yOffset, roadWidth, lotWidth, nSpotsInRow, carWidth, G):
         M = ParkingGraph.createRow(isParkingSpace, yOffset, roadWidth, lotWidth, nSpotsInRow, carWidth)
-        G.add_nodes_from(M)
+        G.add_nodes_from(M.nodes(data=True))
         G.add_edges_from(M.edges)
 
     # yOffset: the y coordinate of the vertices on the road directly below this block
@@ -63,9 +72,9 @@ class ParkingGraph:
         r2 = ParkingGraph.createRow(True, yOffset + 0.5*roadWidth + 1.5*carLength, roadWidth, lotWidth, nSpotsInRow, carWidth)
         r3 = ParkingGraph.createRow(False, yOffset + roadWidth + 2*carLength, roadWidth, lotWidth, nSpotsInRow, carWidth)
 
-        B.add_nodes_from(r1)
-        B.add_nodes_from(r2)
-        B.add_nodes_from(r3)
+        B.add_nodes_from(r1.nodes(data=True))
+        B.add_nodes_from(r2.nodes(data=True))
+        B.add_nodes_from(r3.nodes(data=True))
         B.add_edges_from(r1.edges)
         B.add_edges_from(r2.edges)
         B.add_edges_from(r3.edges)
@@ -84,7 +93,7 @@ class ParkingGraph:
     def addBlock(yOffset, roadWidth, carLength, lotWidth, nSpotsInRow, carWidth, G):
         M = ParkingGraph.createBlock(yOffset, roadWidth, carLength, lotWidth, nSpotsInRow, carWidth)
 
-        G.add_nodes_from(M)
+        G.add_nodes_from(M.nodes(data=True))
         G.add_edges_from(M.edges)
 
         G.add_edge((roadWidth/2, yOffset), 
@@ -97,5 +106,5 @@ class ParkingGraph:
                             (roadWidth + (i+0.5)*carWidth, yOffset + 0.5*roadWidth + 0.5*carLength))
 
 g = ParkingGraph(roadWidth=3, carWidth=2, carLength=5, nSpotsInRow=5, nBlocks=1)
-g.initialize()
+g.initialize_basic()
 g.visualize()
