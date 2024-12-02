@@ -31,8 +31,8 @@ class ParkingStrategy:
             data.loc[i,'time'] = time
         print(data)
 
-g = ParkingGraph(roadWidth=3, carWidth=2, carLength=5, nSpotsInRow=5, nBlocks=1)
-g.initialize_basic()
+g = ParkingGraph(roadWidth=3, carWidth=2, carLength=5, nSpotsInRow=5, nBlocks=2)
+g.initialize()
 g.populate_bernoulli(0.9)
 g.visualize()
 
