@@ -110,3 +110,6 @@ class ParkingGraph:
         for i in range(nSpotsInRow):
             G.add_edge((roadWidth + (i+0.5)*carWidth, yOffset), 
                             (roadWidth + (i+0.5)*carWidth, yOffset + 0.5*roadWidth + 0.5*carLength))
+            
+    def getGraph(self):
+        return self.G
