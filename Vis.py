@@ -10,7 +10,11 @@ class Vis:
 
     
     def getNeighbors(self, position):
-        neighbors = [node for node in self.G.nodes if self.G.has_edge(position, node)]
+        neighbors = []
+        for node in self.G.nodes:
+            if self.G.has_edge(position, node):
+                neighbors.append(node)
+        #neighbors = [node for node in self.G.nodes if self.G.has_edge(position, node)]
         return neighbors
 
     # Will run a BFS to find the first visible cars.
