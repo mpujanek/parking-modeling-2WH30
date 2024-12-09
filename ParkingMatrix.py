@@ -6,13 +6,14 @@ import pandas as pd
 
 class ParkingMatrix:
 
-    def __init__(self, nSpotsInRow, visionRange, drivingSpeed):
+    def __init__(self, nSpotsInRow, visionRange, drivingSpeed, walkingSpeed):
         # factor = 3 if doubleRows else 2
         self.nSpotsInRow = nSpotsInRow
         self.knownSpots = [ParkingSpotState.UNKNOWN] * nSpotsInRow
         self.position = 0
         self.visionRange = visionRange
         self.drivingSpeed = drivingSpeed
+        self.walkingSpeed = walkingSpeed
         # extra stuff to use in strategy
         self.spotToParkIn = None
         self.moveDir = 1
@@ -53,6 +54,10 @@ class ParkingMatrix:
             return self.position - 1
         else: 
             return self.position
+
+    def walkToEnd(self, position):
+        distance = float(len(self.matrix) - position)
+        return distance / float(self.walkingSpeed)
 
     # assumes there is a parking spot available and no changes in parked cars
     def bestVisibleSpot(self):
@@ -118,7 +123,7 @@ class ParkingMatrix:
             return self.stepTowards(self.spotToParkIn)
 
     # run the strategy once and return the time it took to find a spot
-    def run(self, timeLimit, strategy):
+    def run_and_print(self, timeLimit, strategy):
         time = 0.0
         while(not self.position == self.spotToParkIn):
             self.print_status(time)
@@ -134,6 +139,21 @@ class ParkingMatrix:
         print("done")
         return time
     
+        # run the strategy once and return the time it took to find a spot
+    
+    def run(self, timeLimit, strategy):
+        time = 0.0
+        while(not self.position == self.spotToParkIn):
+            next_pos = strategy()
+            if next_pos == self.position:
+                time += self.walkToEnd(self.position)
+                return time
+            time += self.move(next_pos)
+            if time > timeLimit:
+                return np.inf
+        time += self.walkToEnd(self.position)
+        return time
+    
     def print_status(self, time):
         print("Parking lot:")
         self.visualize()
@@ -142,13 +162,23 @@ class ParkingMatrix:
         print("Heading towards " + str(self.spotToParkIn))
         print("Time elapsed: " + str(time) + "\n")
     
-    # run the strategy on the same graph 
-    def test(self, timeLimit, iters=10):
+    # run the strategy many times and export time it took
+    def test(self, timeLimit, strategy, populate, param, iters=10):
         data = pd.DataFrame({'time': []})
         for i in range(iters):
-            time = self.run(timeLimit)
+            # reset position and knowledge
+            self.position = 0
+            self.knownSpots = [ParkingSpotState.UNKNOWN] * self.nSpotsInRow
+            self.spotToParkIn = None
+
+            # populate parking lot 
+            populate(param)
+
+            # run strategy and record time
+            time = self.run(timeLimit, strategy)
             data.loc[i,'time'] = time
         print(data)
+        print(data.describe())
 
     def populate_bernoulli(self, p):
         for i in range(self.nSpotsInRow):
@@ -177,11 +207,12 @@ class ParkingMatrix:
                 vis.append("XX" if self.position == i else "X")
         print(vis)
 
-m = ParkingMatrix(15, 5, 1)
+m = ParkingMatrix(15, 5, 1, 0.5)
 m.populate_bernoulli(0.5)
 m.n = 5
 m.x = 6
 #print(m.visualize())
 #print(m.visualize_vision())
 #print(m.bestVisibleSpot())
-m.run(20, m.n_of_x)
+#m.run_and_print(20, m.n_of_x)
+m.test(50, m.bestVisibleSpot, m.populate_bernoulli, 0.5, 10)
