@@ -18,8 +18,9 @@ class ParkingMatrix:
         self.moveDir = 1
         self.n = 0
         self.x = 0
+        self.backTrack = False
         #self.matrix = [[ParkingSpotState.ROAD if (x==0 or x==nspotsInRow+1 or y %factor == 0) else ParkingSpotState.EMPTY for x in range(nspotsInRow + 2)] for y in range(factor*nBlocks+1)]
-        self.matrix = [ParkingSpotState.EMPTY for x in range(nSpotsInRow)]
+        self.matrix = [ParkingSpotState.EMPTY] * nSpotsInRow
 
     def getMatrix(self):
         return self.matrix
@@ -53,6 +54,25 @@ class ParkingMatrix:
             return self.position - 1
         else: 
             return self.position
+
+    def backtrackStrategy(self):
+        if self.position == len(self.matrix) - 1:
+            self.backTrack = True
+
+        if not self.backTrack:
+            return self.position + 1
+        
+        else:
+            if self.matrix[self.position] == ParkingSpotState.EMPTY:
+                self.spotToParkIn = self.position
+                return self.position
+            return self.position - 1
+
+            
+
+
+        
+
 
     # assumes there is a parking spot available and no changes in parked cars
     def bestVisibleSpot(self):
@@ -184,4 +204,5 @@ m.x = 6
 #print(m.visualize())
 #print(m.visualize_vision())
 #print(m.bestVisibleSpot())
-m.run(20, m.n_of_x)
+# m.run(20, m.n_of_x)
+# m.run(20, m.backtrackStrategy)
