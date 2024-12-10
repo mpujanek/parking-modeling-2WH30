@@ -28,7 +28,7 @@ class ParkingMatrix:
     
     def visibility(self, position):
         for i in range(self.visionRange + 1):
-            if position + i < len(self.knownSpots):
+            if position + i < self.nSpotsInRow:
                 self.knownSpots[position + i] = self.getMatrix()[position + i]
 
     # returns index of the visible spot that is closest to the STORE ENTRANCE, None if no such spot exists
@@ -177,6 +177,26 @@ class ParkingMatrix:
         for i in range(self.nSpotsInRow):
             self.matrix[i] = ParkingSpotState.FULL if random.random() < p else ParkingSpotState.EMPTY
 
+    # p_max: probability that the spot closest to the store is occupied,
+    # then the probability falls off exponentially
+    # steepness: exponent of the probability dropoff curve
+    def populate_exponential(self, p_max, steepness):
+        n = self.nSpotsInRow
+        for i in range(self.nSpotsInRow):
+            # get p value for bernoulli from exponential distribution
+            threshold = p_max * np.exp(-steepness * (1 - i/n)) 
+
+            # bernoulli
+            self.matrix[i] = ParkingSpotState.FULL if random.random() < threshold else ParkingSpotState.EMPTY
+
+    # this one drops off linearly
+    def populate_linear(self, p_max, p_min):
+        n = self.nSpotsInRow
+        for i in range(self.nSpotsInRow):
+            # linear interpolation between p_max and p_min
+            threshold = (i/n) * p_max + (1 - i/n) * p_min
+            self.matrix[i] = ParkingSpotState.FULL if random.random() < threshold else ParkingSpotState.EMPTY
+
     def visualize(self):
         #pprint(self.matrix)
         vis = []
@@ -201,7 +221,7 @@ class ParkingMatrix:
         print(vis)
 
 m = ParkingMatrix(15, 3, 1, 0.5)
-m.populate_bernoulli(0.5)
+m.populate_linear(1, 0)
 m.n = 5
 m.x = 6
 #print(m.visualize())
