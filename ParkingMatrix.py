@@ -28,7 +28,8 @@ class ParkingMatrix:
     
     def visibility(self, position):
         for i in range(self.visionRange + 1):
-            self.knownSpots[position + i] = self.getMatrix()[position + i]
+            if position + i < len(self.knownSpots):
+                self.knownSpots[position + i] = self.getMatrix()[position + i]
 
     # returns index of the visible spot that is closest to the STORE ENTRANCE, None if no such spot exists
     def closestVisibleSpot(self):
@@ -61,28 +62,17 @@ class ParkingMatrix:
 
     # assumes there is a parking spot available and no changes in parked cars
     def bestVisibleSpot(self):
-        if self.position == 0:
-            # update visibility
-            self.visibility(self.position)
+        # update visibility
+        self.visibility(self.position)
 
-            # determine furthest empty spot visible from entrance
-            self.spotToParkIn = self.closestVisibleSpot()
+        # determine furthest empty spot visible from entrance
+        self.spotToParkIn = self.closestVisibleSpot()
 
-            # if no empty spot visible from entrance, just keep moving
-            if self.spotToParkIn == None:
-                return self.position + 1
-            else: 
-                return self.stepTowards(self.spotToParkIn)
-            
-        else:
-            # if no parking spot is visible, update visibility
-            if self.spotToParkIn == None:
-                self.visibility(self.position)
-                self.spotToParkIn = self.closestVisibleSpot()
-                if self.spotToParkIn == None:
-                    return self.position + self.moveDir
-            else:
-                return self.stepTowards(self.spotToParkIn)
+        # if no empty spot visible from entrance, just keep moving
+        if self.spotToParkIn == None:
+            return self.position + 1
+        else: 
+            return self.stepTowards(self.spotToParkIn)
             
     def n_of_x(self):
         if self.spotToParkIn == None:
@@ -99,9 +89,11 @@ class ParkingMatrix:
                     if self.knownSpots[i] == ParkingSpotState.FULL:
                         counter += 1
                 # if it is very crowded (n/x or more) we move towards the best currently available spot
+                # (or keep moving if no such spot exists)
                 if counter >= self.n:
                     self.spotToParkIn = self.closestVisibleSpot()
-                    return self.stepTowards(self.spotToParkIn)
+                    return self.stepTowards(self.spotToParkIn) if not self.spotToParkIn == None else self.position + 1
+                # if it is not crowded we keep moving until the end of the parking lot
                 else:
                     return self.position + 1
 
@@ -120,6 +112,7 @@ class ParkingMatrix:
         
         # if we already have a spot we're heading towards
         else: 
+            self.spotToParkIn = self.closestVisibleSpot()
             return self.stepTowards(self.spotToParkIn)
 
     # run the strategy once and return the time it took to find a spot
@@ -175,7 +168,7 @@ class ParkingMatrix:
             populate(param)
 
             # run strategy and record time
-            time = self.run(timeLimit, strategy)
+            time = self.run_and_print(timeLimit, strategy)
             data.loc[i,'time'] = time
         print(data)
         print(data.describe())
@@ -207,12 +200,12 @@ class ParkingMatrix:
                 vis.append("XX" if self.position == i else "X")
         print(vis)
 
-m = ParkingMatrix(15, 5, 1, 0.5)
+m = ParkingMatrix(15, 3, 1, 0.5)
 m.populate_bernoulli(0.5)
 m.n = 5
 m.x = 6
 #print(m.visualize())
 #print(m.visualize_vision())
 #print(m.bestVisibleSpot())
-#m.run_and_print(20, m.n_of_x)
-m.test(50, m.bestVisibleSpot, m.populate_bernoulli, 0.5, 10)
+m.run_and_print(50, m.n_of_x)
+#m.test(50, m.bestVisibleSpot, m.populate_bernoulli, 0.5, 50)
