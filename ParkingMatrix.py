@@ -58,6 +58,14 @@ class ParkingMatrix:
         else: 
             return self.position
 
+
+    #Park in the first available spot, will go out of bounds on a full parking lot.
+    def firstSpotStrategy(self):
+        if self.matrix[self.position] == ParkingSpotState.EMPTY:
+            self.spotToParkIn = self.position
+            return self.position
+        return self.position + 1
+
     def backtrackStrategy(self):
 
         if self.position == 0 and self.backTrack:
@@ -77,7 +85,7 @@ class ParkingMatrix:
 
             
     #Parks in the best visible spot after fraction of cars.
-    def parkAfterFraction(self):
+    def parkAfterFractionStrategy(self):
 
         if (self.position >= len(self.matrix) - 1 or self.backTrack):
             self.backTrack = True
@@ -264,9 +272,10 @@ m.x = 6
 #print(m.visualize())
 #print(m.visualize_vision())
 #print(m.bestVisibleSpot())
+# m.run_and_print(50, m.firstSpotStrategy)
 # m.run(20, m.n_of_x)
 # m.run(20, m.backtrackStrategy)
 # m.run_and_print(50, m.n_of_x)
 #m.test(50, m.bestVisibleSpot, m.populate_bernoulli, 0.5, 50)
-m.test(50, m.parkAfterFraction, m.populate_bernoulli, 0.9, 50)
+m.test(50, m.parkAfterFractionStrategy, m.populate_bernoulli, 0.9, 50)
 # m.run_and_print(50, m.parkAfterFraction)
