@@ -214,7 +214,7 @@ class ParkingMatrix:
 
             # run strategy and record time
             time = self.run_and_print(timeLimit, strategy)
-            data.loc[i,'time'] = time
+            data.loc[i,'time'] = time * self.drivingSpeed + self.position * self.walkingSpeed
         print(data)
         print(data.describe())
 
@@ -278,4 +278,4 @@ m.x = 6
 # m.run_and_print(50, m.n_of_x)
 #m.test(50, m.bestVisibleSpot, m.populate_bernoulli, 0.5, 50)
 m.test(50, m.parkAfterFractionStrategy, m.populate_bernoulli, 0.9, 50)
-# m.run_and_print(50, m.parkAfterFraction)
+# m.run_and_print(50, m.parkAfterFractionStrategy)
