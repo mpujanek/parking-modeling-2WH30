@@ -6,19 +6,21 @@ import pandas as pd
 
 class ParkingMatrix:
 
-    def __init__(self, nSpotsInRow, visionRange, drivingSpeed):
+    def __init__(self, nSpotsInRow, visionRange, drivingSpeed, walkingSpeed):
         # factor = 3 if doubleRows else 2
         self.nSpotsInRow = nSpotsInRow
         self.knownSpots = [ParkingSpotState.UNKNOWN] * nSpotsInRow
         self.position = 0
         self.visionRange = visionRange
         self.drivingSpeed = drivingSpeed
+        self.walkingSpeed = walkingSpeed
         # extra stuff to use in strategy
         self.spotToParkIn = None
         self.moveDir = 1
         self.n = 0
         self.x = 0
         self.backTrack = False
+        self.fraction = 1/3
         #self.matrix = [[ParkingSpotState.ROAD if (x==0 or x==nspotsInRow+1 or y %factor == 0) else ParkingSpotState.EMPTY for x in range(nspotsInRow + 2)] for y in range(factor*nBlocks+1)]
         self.matrix = [ParkingSpotState.EMPTY] * nSpotsInRow
 
@@ -27,8 +29,9 @@ class ParkingMatrix:
     
     
     def visibility(self, position):
-        for i in range(self.visionRange + 1):
-            self.knownSpots[position + i] = self.getMatrix()[position + i]
+        for i in range(0, self.visionRange + 1):
+            if position + i < self.nSpotsInRow:
+                self.knownSpots[position + i] = self.getMatrix()[position + i]
 
     # returns index of the visible spot that is closest to the STORE ENTRANCE, None if no such spot exists
     def closestVisibleSpot(self):
@@ -56,6 +59,10 @@ class ParkingMatrix:
             return self.position
 
     def backtrackStrategy(self):
+
+        if self.position == 0 and self.backTrack:
+            return self.position
+
         if self.position == len(self.matrix) - 1:
             self.backTrack = True
 
@@ -69,35 +76,39 @@ class ParkingMatrix:
             return self.position - 1
 
             
+    #Parks in the best visible spot after fraction of cars.
+    def parkAfterFraction(self):
 
+        if (self.position >= len(self.matrix) - 1 or self.backTrack):
+            self.backTrack = True
+            return self.backtrackStrategy()
+
+        print("fraction = " + str((self.position / len(self.matrix))))
+        
+        if (self.position / len(self.matrix) >= self.fraction):
+            return self.bestVisibleSpot()
+        
+        return self.position + 1
 
         
 
+    def walkToEnd(self, position):
+        distance = float(len(self.matrix) - position)
+        return distance / float(self.walkingSpeed)
 
     # assumes there is a parking spot available and no changes in parked cars
     def bestVisibleSpot(self):
-        if self.position == 0:
-            # update visibility
-            self.visibility(self.position)
+        # update visibility
+        self.visibility(self.position)
 
-            # determine furthest empty spot visible from entrance
-            self.spotToParkIn = self.closestVisibleSpot()
+        # determine furthest empty spot visible from entrance
+        self.spotToParkIn = self.closestVisibleSpot()
 
-            # if no empty spot visible from entrance, just keep moving
-            if self.spotToParkIn == None:
-                return self.position + 1
-            else: 
-                return self.stepTowards(self.spotToParkIn)
-            
-        else:
-            # if no parking spot is visible, update visibility
-            if self.spotToParkIn == None:
-                self.visibility(self.position)
-                self.spotToParkIn = self.closestVisibleSpot()
-                if self.spotToParkIn == None:
-                    return self.position + self.moveDir
-            else:
-                return self.stepTowards(self.spotToParkIn)
+        # if no empty spot visible from entrance, just keep moving
+        if self.spotToParkIn == None:
+            return self.position + 1
+        else: 
+            return self.stepTowards(self.spotToParkIn)
             
     def n_of_x(self):
         if self.spotToParkIn == None:
@@ -114,9 +125,11 @@ class ParkingMatrix:
                     if self.knownSpots[i] == ParkingSpotState.FULL:
                         counter += 1
                 # if it is very crowded (n/x or more) we move towards the best currently available spot
+                # (or keep moving if no such spot exists)
                 if counter >= self.n:
                     self.spotToParkIn = self.closestVisibleSpot()
-                    return self.stepTowards(self.spotToParkIn)
+                    return self.stepTowards(self.spotToParkIn) if not self.spotToParkIn == None else self.position + 1
+                # if it is not crowded we keep moving until the end of the parking lot
                 else:
                     return self.position + 1
 
@@ -135,10 +148,11 @@ class ParkingMatrix:
         
         # if we already have a spot we're heading towards
         else: 
+            self.spotToParkIn = self.closestVisibleSpot()
             return self.stepTowards(self.spotToParkIn)
 
     # run the strategy once and return the time it took to find a spot
-    def run(self, timeLimit, strategy):
+    def run_and_print(self, timeLimit, strategy):
         time = 0.0
         while(not self.position == self.spotToParkIn):
             self.print_status(time)
@@ -154,6 +168,21 @@ class ParkingMatrix:
         print("done")
         return time
     
+        # run the strategy once and return the time it took to find a spot
+    
+    def run(self, timeLimit, strategy):
+        time = 0.0
+        while(not self.position == self.spotToParkIn):
+            next_pos = strategy()
+            if next_pos == self.position:
+                time += self.walkToEnd(self.position)
+                return time
+            time += self.move(next_pos)
+            if time > timeLimit:
+                return np.inf
+        time += self.walkToEnd(self.position)
+        return time
+    
     def print_status(self, time):
         print("Parking lot:")
         self.visualize()
@@ -162,17 +191,48 @@ class ParkingMatrix:
         print("Heading towards " + str(self.spotToParkIn))
         print("Time elapsed: " + str(time) + "\n")
     
-    # run the strategy on the same graph 
-    def test(self, timeLimit, iters=10):
+    # run the strategy many times and export time it took
+    def test(self, timeLimit, strategy, populate, param, iters=10):
         data = pd.DataFrame({'time': []})
         for i in range(iters):
-            time = self.run(timeLimit)
+            # reset position and knowledge
+            self.position = 0
+            self.knownSpots = [ParkingSpotState.UNKNOWN] * self.nSpotsInRow
+            self.spotToParkIn = None
+            self.backTrack = False
+
+            # populate parking lot 
+            populate(param)
+
+            # run strategy and record time
+            time = self.run_and_print(timeLimit, strategy)
             data.loc[i,'time'] = time
         print(data)
+        print(data.describe())
 
     def populate_bernoulli(self, p):
         for i in range(self.nSpotsInRow):
             self.matrix[i] = ParkingSpotState.FULL if random.random() < p else ParkingSpotState.EMPTY
+
+    # p_max: probability that the spot closest to the store is occupied,
+    # then the probability falls off exponentially
+    # steepness: exponent of the probability dropoff curve
+    def populate_exponential(self, p_max, steepness):
+        n = self.nSpotsInRow
+        for i in range(self.nSpotsInRow):
+            # get p value for bernoulli from exponential distribution
+            threshold = p_max * np.exp(-steepness * (1 - i/n)) 
+
+            # bernoulli
+            self.matrix[i] = ParkingSpotState.FULL if random.random() < threshold else ParkingSpotState.EMPTY
+
+    # this one drops off linearly
+    def populate_linear(self, p_max, p_min):
+        n = self.nSpotsInRow
+        for i in range(self.nSpotsInRow):
+            # linear interpolation between p_max and p_min
+            threshold = (i/n) * p_max + (1 - i/n) * p_min
+            self.matrix[i] = ParkingSpotState.FULL if random.random() < threshold else ParkingSpotState.EMPTY
 
     def visualize(self):
         #pprint(self.matrix)
@@ -197,8 +257,8 @@ class ParkingMatrix:
                 vis.append("XX" if self.position == i else "X")
         print(vis)
 
-m = ParkingMatrix(15, 5, 1)
-m.populate_bernoulli(0.5)
+m = ParkingMatrix(20, 3, 1, 0.5)
+m.populate_linear(1, 0)
 m.n = 5
 m.x = 6
 #print(m.visualize())
@@ -206,3 +266,7 @@ m.x = 6
 #print(m.bestVisibleSpot())
 # m.run(20, m.n_of_x)
 # m.run(20, m.backtrackStrategy)
+# m.run_and_print(50, m.n_of_x)
+#m.test(50, m.bestVisibleSpot, m.populate_bernoulli, 0.5, 50)
+m.test(50, m.parkAfterFraction, m.populate_bernoulli, 0.9, 50)
+# m.run_and_print(50, m.parkAfterFraction)
