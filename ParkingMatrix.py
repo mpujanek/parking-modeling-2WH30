@@ -156,20 +156,28 @@ class ParkingMatrix:
         print("Time elapsed: " + str(time) + "\n")
     
     # run the strategy many times and export time it took
-    def test(self, timeLimit, strategy, populate, param, iters=10):
-        data = pd.DataFrame({'time': []})
+    def test(self, timeLimit, strategies, populate, param, iters=10):
+        # initialize the dataframe 
+        data = pd.DataFrame()
+        for strategy in strategies:
+            data[strategy.__name__] = pd.Series(dtype=float)
+
+        # run the simulation
         for i in range(iters):
             # reset position and knowledge
             self.position = 0
             self.knownSpots = [ParkingSpotState.UNKNOWN] * self.nSpotsInRow
             self.spotToParkIn = None
 
-            # populate parking lot 
+            # populate parking lot, making sure there is at least one available spot
             populate(param)
+            while self.matrix == [ParkingSpotState.FULL for x in range(self.nSpotsInRow)]:
+                populate(param)
 
             # run strategy and record time
-            time = self.run(timeLimit, strategy)
-            data.loc[i,'time'] = time
+            for strategy in strategies:
+                time = self.run(timeLimit, strategy)
+                data.loc[i,strategy.__name__] = time
         print(data)
         print(data.describe())
 
@@ -228,4 +236,4 @@ m.x = 6
 #print(m.visualize_vision())
 #print(m.bestVisibleSpot())
 #m.run_and_print(50, m.n_of_x)
-m.test(100, m.bestVisibleSpot, m.populate_bernoulli, 0.9, 100)
+m.test(100, [m.bestVisibleSpot, m.n_of_x], m.populate_bernoulli, 0.9, 100)
