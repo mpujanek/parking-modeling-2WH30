@@ -168,7 +168,7 @@ class ParkingMatrix:
             populate(param)
 
             # run strategy and record time
-            time = self.run_and_print(timeLimit, strategy)
+            time = self.run(timeLimit, strategy)
             data.loc[i,'time'] = time
         print(data)
         print(data.describe())
@@ -220,12 +220,12 @@ class ParkingMatrix:
                 vis.append("XX" if self.position == i else "X")
         print(vis)
 
-m = ParkingMatrix(15, 3, 1, 0.5)
-m.populate_linear(1, 0)
+m = ParkingMatrix(50, 1, 1, 0.5)
+#m.populate_bernoulli(0.9)
 m.n = 5
 m.x = 6
 #print(m.visualize())
 #print(m.visualize_vision())
 #print(m.bestVisibleSpot())
-m.run_and_print(50, m.n_of_x)
-#m.test(50, m.bestVisibleSpot, m.populate_bernoulli, 0.5, 50)
+#m.run_and_print(50, m.n_of_x)
+m.test(100, m.bestVisibleSpot, m.populate_bernoulli, 0.9, 100)
