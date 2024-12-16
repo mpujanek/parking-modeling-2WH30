@@ -232,7 +232,7 @@ class ParkingMatrix:
     # p_max: probability that the spot closest to the store is occupied,
     # then the probability falls off exponentially
     # steepness: exponent of the probability dropoff curve
-    def populate_exponential(self, p_max, steepness):
+    def populate_exponential(self, p_max, steepness=1):
         n = self.nSpotsInRow
         for i in range(self.nSpotsInRow):
             # get p value for bernoulli from exponential distribution
@@ -242,7 +242,7 @@ class ParkingMatrix:
             self.matrix[i] = ParkingSpotState.FULL if random.random() < threshold else ParkingSpotState.EMPTY
 
     # this one drops off linearly
-    def populate_linear(self, p_max, p_min):
+    def populate_linear(self, p_min, p_max=1):
         n = self.nSpotsInRow
         for i in range(self.nSpotsInRow):
             # linear interpolation between p_max and p_min
@@ -274,11 +274,11 @@ class ParkingMatrix:
 
 m = ParkingMatrix(100, 1, 1, 0.5)
 #m.populate_bernoulli(0.9)
-m.n = 5
-m.x = 6
+m.n = 19
+m.x = 20
 #print(m.visualize())
 #print(m.visualize_vision())
 #print(m.bestVisibleSpot())
 #m.run_and_print(50, m.n_of_x)
 m.test(1000, [m.bestVisibleSpot, m.n_of_x, m.parkAfterFractionStrategy, 
-             m.backtrackStrategy, m.firstSpotStrategy], m.populate_bernoulli, 0.98, 1000)
+             m.backtrackStrategy, m.firstSpotStrategy], m.populate_linear, 0, 1000)
