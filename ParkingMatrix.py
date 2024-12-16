@@ -19,15 +19,17 @@ class ParkingMatrix:
         self.moveDir = 1
         self.n = 0
         self.x = 0
+        self.backTrack = False
+        self.fraction = 1/3
         #self.matrix = [[ParkingSpotState.ROAD if (x==0 or x==nspotsInRow+1 or y %factor == 0) else ParkingSpotState.EMPTY for x in range(nspotsInRow + 2)] for y in range(factor*nBlocks+1)]
-        self.matrix = [ParkingSpotState.EMPTY for x in range(nSpotsInRow)]
+        self.matrix = [ParkingSpotState.EMPTY] * nSpotsInRow
 
     def getMatrix(self):
         return self.matrix
     
     
     def visibility(self, position):
-        for i in range(self.visionRange + 1):
+        for i in range(0, self.visionRange + 1):
             if position + i < self.nSpotsInRow:
                 self.knownSpots[position + i] = self.getMatrix()[position + i]
 
@@ -55,6 +57,48 @@ class ParkingMatrix:
             return self.position - 1
         else: 
             return self.position
+
+
+    #Park in the first available spot, will go out of bounds on a full parking lot.
+    def firstSpotStrategy(self):
+        if self.matrix[self.position] == ParkingSpotState.EMPTY:
+            self.spotToParkIn = self.position
+            return self.position
+        return self.position + 1
+
+    def backtrackStrategy(self):
+
+        if self.position == 0 and self.backTrack:
+            return self.position
+
+        if self.position == len(self.matrix) - 1:
+            self.backTrack = True
+
+        if not self.backTrack:
+            return self.position + 1
+        
+        else:
+            if self.matrix[self.position] == ParkingSpotState.EMPTY:
+                self.spotToParkIn = self.position
+                return self.position
+            return self.position - 1
+
+            
+    #Parks in the best visible spot after fraction of cars.
+    def parkAfterFractionStrategy(self):
+
+        if (self.position >= len(self.matrix) - 1 or self.backTrack):
+            self.backTrack = True
+            return self.backtrackStrategy()
+
+        print("fraction = " + str((self.position / len(self.matrix))))
+        
+        if (self.position / len(self.matrix) >= self.fraction):
+            return self.bestVisibleSpot()
+        
+        return self.position + 1
+
+        
 
     def walkToEnd(self, position):
         distance = float(len(self.matrix) - position)
@@ -168,6 +212,7 @@ class ParkingMatrix:
             self.position = 0
             self.knownSpots = [ParkingSpotState.UNKNOWN] * self.nSpotsInRow
             self.spotToParkIn = None
+            self.backTrack = False
 
             # populate parking lot, making sure there is at least one available spot
             populate(param)
