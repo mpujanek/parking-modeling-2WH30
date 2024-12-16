@@ -91,7 +91,7 @@ class ParkingMatrix:
             self.backTrack = True
             return self.backtrackStrategy()
 
-        print("fraction = " + str((self.position / len(self.matrix))))
+        #print("fraction = " + str((self.position / len(self.matrix))))
         
         if (self.position / len(self.matrix) >= self.fraction):
             return self.bestVisibleSpot()
@@ -208,12 +208,6 @@ class ParkingMatrix:
 
         # run the simulation
         for i in range(iters):
-            # reset position and knowledge
-            self.position = 0
-            self.knownSpots = [ParkingSpotState.UNKNOWN] * self.nSpotsInRow
-            self.spotToParkIn = None
-            self.backTrack = False
-
             # populate parking lot, making sure there is at least one available spot
             populate(param)
             while self.matrix == [ParkingSpotState.FULL for x in range(self.nSpotsInRow)]:
@@ -221,6 +215,11 @@ class ParkingMatrix:
 
             # run strategy and record time
             for strategy in strategies:
+                # reset position and knowledge
+                self.position = 0
+                self.knownSpots = [ParkingSpotState.UNKNOWN] * self.nSpotsInRow
+                self.spotToParkIn = None
+                self.backTrack = False
                 time = self.run(timeLimit, strategy)
                 data.loc[i,strategy.__name__] = time
         print(data)
@@ -273,7 +272,7 @@ class ParkingMatrix:
                 vis.append("XX" if self.position == i else "X")
         print(vis)
 
-m = ParkingMatrix(50, 1, 1, 0.5)
+m = ParkingMatrix(100, 1, 1, 0.5)
 #m.populate_bernoulli(0.9)
 m.n = 5
 m.x = 6
@@ -281,4 +280,5 @@ m.x = 6
 #print(m.visualize_vision())
 #print(m.bestVisibleSpot())
 #m.run_and_print(50, m.n_of_x)
-m.test(100, [m.bestVisibleSpot, m.n_of_x], m.populate_bernoulli, 0.9, 100)
+m.test(1000, [m.bestVisibleSpot, m.n_of_x, m.parkAfterFractionStrategy, 
+             m.backtrackStrategy, m.firstSpotStrategy], m.populate_bernoulli, 0.98, 1000)
