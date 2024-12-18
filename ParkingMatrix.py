@@ -222,21 +222,23 @@ class ParkingMatrix:
                 self.backTrack = False
                 time = self.run(timeLimit, strategy)
                 data.loc[i,strategy.__name__] = time
-        print(data)
-        print(data.describe())
+        return data.describe()
+        #print(data)
+        #print(data.describe())
 
-    def populate_bernoulli(self, p):
+    def populate_bernoulli(self, b):
+        p = b / self.nSpotsInRow
         for i in range(self.nSpotsInRow):
             self.matrix[i] = ParkingSpotState.FULL if random.random() < p else ParkingSpotState.EMPTY
 
     # p_max: probability that the spot closest to the store is occupied,
     # then the probability falls off exponentially
     # steepness: exponent of the probability dropoff curve
-    def populate_exponential(self, p_max, steepness=1):
+    def populate_exponential(self, b, steepness=1):
         n = self.nSpotsInRow
         for i in range(self.nSpotsInRow):
             # get p value for bernoulli from exponential distribution
-            threshold = p_max * np.exp(-steepness * (1 - i/n)) 
+            threshold = np.exp(-(n - i) / (1 + b)) 
 
             # bernoulli
             self.matrix[i] = ParkingSpotState.FULL if random.random() < threshold else ParkingSpotState.EMPTY
@@ -280,5 +282,19 @@ m.x = 20
 #print(m.visualize_vision())
 #print(m.bestVisibleSpot())
 #m.run_and_print(50, m.n_of_x)
-m.test(1000, [m.bestVisibleSpot, m.n_of_x, m.parkAfterFractionStrategy, 
-             m.backtrackStrategy, m.firstSpotStrategy], m.populate_linear, 0, 1000)
+strategies = [m.bestVisibleSpot, m.n_of_x, m.parkAfterFractionStrategy, 
+             m.backtrackStrategy, m.firstSpotStrategy]
+#m.test(1000, strategies, m.populate_exponential, 80, 1000)
+
+# test a spread of parameters
+df_expectation = pd.DataFrame()
+df_std = pd.DataFrame()
+for strategy in strategies:
+    df_expectation[strategy.__name__] = pd.Series(dtype=float)
+    df_std[strategy.__name__] = pd.Series(dtype=float)
+for b in range(100):
+    df_b = m.test(1000, strategies, m.populate_exponential, 80, iters=10)
+    df_expectation.loc[b] = df_b.loc['mean']
+    df_std.loc[b] = df_b.loc['std']
+print(df_expectation)
+print(df_std)
