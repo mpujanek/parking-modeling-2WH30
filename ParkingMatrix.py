@@ -287,14 +287,61 @@ strategies = [m.bestVisibleSpot, m.n_of_x, m.parkAfterFractionStrategy,
 #m.test(1000, strategies, m.populate_exponential, 80, 1000)
 
 # test a spread of parameters
-df_expectation = pd.DataFrame()
-df_std = pd.DataFrame()
+df_expectation_1 = pd.DataFrame()
+df_std_1 = pd.DataFrame()
 for strategy in strategies:
-    df_expectation[strategy.__name__] = pd.Series(dtype=float)
-    df_std[strategy.__name__] = pd.Series(dtype=float)
+    df_expectation_1[strategy.__name__] = pd.Series(dtype=float)
+    df_std_1[strategy.__name__] = pd.Series(dtype=float)
 for b in range(100):
-    df_b = m.test(1000, strategies, m.populate_exponential, 80, iters=10)
-    df_expectation.loc[b] = df_b.loc['mean']
-    df_std.loc[b] = df_b.loc['std']
-print(df_expectation)
-print(df_std)
+    df_b = m.test(1000, strategies, m.populate_bernoulli, b, iters=100)
+    df_expectation_1.loc[b] = df_b.loc['mean']
+    df_std_1.loc[b] = df_b.loc['std']
+
+df_expectation_2 = pd.DataFrame()
+df_std_2 = pd.DataFrame()
+for strategy in strategies:
+    df_expectation_2[strategy.__name__] = pd.Series(dtype=float)
+    df_std_2[strategy.__name__] = pd.Series(dtype=float)
+for b in range(100):
+    df_b = m.test(1000, strategies, m.populate_exponential, b, iters=100)
+    df_expectation_2.loc[b] = df_b.loc['mean']
+    df_std_2.loc[b] = df_b.loc['std']
+
+
+import matplotlib.pyplot as plt
+
+B=range(100)
+
+fig, axs = plt.subplots(1, 3, figsize=(15, 5), sharey=True)
+
+# first available spot strategy
+axs[0].scatter(B, df_std_1['firstSpotStrategy'], label="distance independent")
+axs[0].scatter(B, df_std_2['firstSpotStrategy'], label="distance dependent")
+axs[0].set_title("First available spot")
+axs[0].set_xlabel("busyness, b")
+axs[0].legend(loc="best")
+axs[0].set_ylabel("Variance of total time, V[T^t]")
+
+# greedy strategy
+axs[1].scatter(B, df_std_1['backtrackStrategy'], label="distance independent")
+axs[1].scatter(B, df_std_2['backtrackStrategy'], label="distance dependent")
+axs[1].set_title("Greedy strategy")
+axs[1].set_xlabel("busyness, b")
+axs[1].legend(loc="best")
+#axs[1].set_ylabel("E[T^t]")
+
+# best visible spot strategy
+axs[2].scatter(B, df_std_1['bestVisibleSpot'], label="distance independent")
+axs[2].scatter(B, df_std_2['bestVisibleSpot'], label="distance dependent")
+axs[2].set_title("Best visible spot")
+axs[2].set_xlabel("busyness, b")
+axs[2].legend(loc="best")
+#axs[2].set_ylabel("E[T^t]")
+#axs[2].set_ylim(-10, 10)  # Limit y-axis for better visibility
+
+# Adjust spacing between subplots
+plt.tight_layout()
+
+# Show the plot
+plt.show()
+
