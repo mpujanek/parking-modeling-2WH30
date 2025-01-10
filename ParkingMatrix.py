@@ -315,8 +315,8 @@ B=range(100)
 fig, axs = plt.subplots(1, 3, figsize=(15, 5), sharey=True)
 
 # first available spot strategy
-axs[0].scatter(B, df_std_1['firstSpotStrategy'], label="distance independent")
-axs[0].scatter(B, df_std_2['firstSpotStrategy'], label="distance dependent")
+axs[0].scatter(B, df_std_1['n_of_x'], label="distance independent")
+axs[0].scatter(B, df_std_2['n_of_x'], label="distance dependent")
 axs[0].set_title("First available spot")
 axs[0].set_xlabel("busyness, b")
 axs[0].legend(loc="best")

@@ -14,61 +14,44 @@ class n_of_x_Strategy(Abstract_Strategy):
 
     def getNextStep(self):
         vis = self.Visibility.getVisibility(self.pos)
-        nextPos = self.pos
 
         if self.isBackTrack:
             if self.parkingMatrix[self.pos] == ParkingSpotState.EMPTY:
                 self.isFinished = True
                 return self.pos
-            
-            nextPos = self.pos - 1
-            if self.isValid(nextPos):
-                self.pos = nextPos
-                return nextPos
-            self.isFinished = True
-            return -inf
-                
-        #Assume minTravel is smaller than number of parking spots.
-        if self.pos < self.minTravel - 1:
-            nextPos += 1
-            self.pos = nextPos
-            return nextPos
-        
-        #Edge case for if no cars are in the first x spots.
-        if vis.count(ParkingSpotState.FULL) == 0:
-            nextPos += 1
-            if self.isValid(nextPos):
-                self.pos = nextPos
-                return nextPos
-            self.isFinished = True
+            self.pos -= 1
             return self.pos
         
-        #Not busy, always continue if possible.
-        if vis.count(ParkingSpotState.FULL) / self.pos < self.threshold and not self.isParking:
-            nextPos += 1
-            if self.isValid(nextPos):
-                self.pos = nextPos
-                return nextPos
+
+        #Travel a minimum of N spots.
+        if self.pos < self.minTravel:
+            self.pos += 1
+            return self.pos
+        
+        #Busyness threshold has been passed, park ASAP.
+        if self.isParking:
+            if self.parkingMatrix[self.pos] == ParkingSpotState.EMPTY:
+                self.isFinished = True
+                return self.pos
+            if self.isValid(self.pos + 1):
+                self.pos += 1
+            else:
+                self.isBackTrack = True
+            return self.pos
+
+        #If it isn't too busy, continue on.
+        if vis[0 : self.pos].count(ParkingSpotState.FULL) / (self.pos) < self.threshold:
+            if self.isValid(self.pos + 1):
+                self.pos += 1
+                return self.pos
             self.isBackTrack = True
             return self.pos
-
-        #Busy, park asap.
-        self.isParking = True
-
-        if self.parkingMatrix[self.pos] == ParkingSpotState.EMPTY:
-            self.isFinished = True
-            return self.pos
         
-        nextPos += 1
-        if self.isValid(nextPos):
-            self.pos = nextPos
-            return nextPos
-
-        self.isBackTrack = True
+        #Only comes here if it's passed initial N spots and it is too busy.
+        self.isParking = True
         return self.pos
             
 
     def resetStrat(self):
         super().resetStrat()
         self.isBackTrack = False
-        self.isFinished = False

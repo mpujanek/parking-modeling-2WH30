@@ -46,7 +46,7 @@ class Simulation:
                     print(str(score))
                 return score
                 
-        return math.inf
+        raise ValueError("Timeout on: " + type(self.Strategy).__name__)
 
 
 

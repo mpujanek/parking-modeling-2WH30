@@ -17,7 +17,7 @@ class BestVisibleSpotStrategy(Abstract_Strategy):
                 return self.pos
             else: 
                 self.isFinished = True
-                return -inf
+                return self.pos
             
         #we are in an empty spot, look ahead if a better spot exists.
         for i in range(self.pos + 1, len(self.parkingMatrix)):

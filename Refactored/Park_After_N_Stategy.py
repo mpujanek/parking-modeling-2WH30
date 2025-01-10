@@ -32,6 +32,8 @@ class Park_After_N_Strategy(Abstract_Strategy):
             return self.pos
         
         self.isBacktrack = True
+        return self.pos
+
 
     def resetStrat(self):
         super().resetStrat()

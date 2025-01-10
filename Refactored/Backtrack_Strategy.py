@@ -12,27 +12,19 @@ class BackTrack_Strategy(Abstract_Strategy):
     
     def getNextStep(self) -> int:
         
+        if not self.isValid(self.pos + 1):
+            self.isBacktracking = True
+
         if not self.isBacktracking:
-            nextPos = self.pos + 1
-            # Reached end of the row.
-            if not self.isValid(nextPos):
-                nextPos = nextPos - 1
-                if self.parkingMatrix[nextPos] == ParkingSpotState.EMPTY:
-                    self.isFinished = True
-                else:
-                    self.isBacktracking = True
+            self.pos += 1
 
-        if self.isBacktracking:
-            nextPos = self.pos - 1
-            if not self.isValid(nextPos):
-                #Strategy is finished.
-                nextPos = -inf
+        else:
+            if self.parkingMatrix[self.pos] == ParkingSpotState.EMPTY:
                 self.isFinished = True
-            if self.parkingMatrix[nextPos] == ParkingSpotState.EMPTY:
-                self.isFinished = True
-
-        self.pos = nextPos
-        return nextPos
+                return self.pos
+            self.pos -= 1
+            
+        return self.pos
 
     def resetStrat(self):
         super().resetStrat()
