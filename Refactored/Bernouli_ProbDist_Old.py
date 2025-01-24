@@ -6,9 +6,9 @@ class Bernouli_Probdist_Old(Abstract_ProbDist):
 
     def __init__(self, nrOfParkingSpots : int, busyness):
         self.nrOfParkingSpots = nrOfParkingSpots
-        self.b = busyness
+        self.b = busyness / 100
 
     def getParkingLotState(self, pos):
-        p = self.b / self.nrOfParkingSpots
+        p = self.b
         return ParkingSpotState.FULL if random() < p else ParkingSpotState.EMPTY
     

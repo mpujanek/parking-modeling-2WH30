@@ -8,12 +8,12 @@ class distDependentProb(Abstract_ProbDist):
 
     def __init__(self, nParkingSpots : int, busyness : int):
         self.nParkingSpots = nParkingSpots
-        self.b = busyness
+        self.b = busyness / 100
 
     
     def getParkingLotState(self, pos):
         super().getParkingLotState(pos)
         rand = random()
-        if rand >= exp(-(self.nParkingSpots - pos) / (1 + self.b)):
+        if rand >= exp(-(self.nParkingSpots - pos) / (1 + self.b * self.nParkingSpots)):
             return ParkingSpotState.EMPTY
         return ParkingSpotState.FULL

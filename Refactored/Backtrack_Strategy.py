@@ -29,3 +29,6 @@ class BackTrack_Strategy(Abstract_Strategy):
     def resetStrat(self):
         super().resetStrat()
         self.isBacktracking = False
+
+    def getName(self):
+        return "Greedy"

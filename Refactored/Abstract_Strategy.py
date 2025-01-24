@@ -22,6 +22,10 @@ class Abstract_Strategy(ABC):
         self.pos = 0
         pass
 
+    @abstractmethod
+    def getName(self) -> str:
+        pass
+
     def setMatrix(self, parkingMatrix : list):
         self.parkingMatrix = parkingMatrix
         self.Visibility.setMatrix(parkingMatrix)

@@ -8,7 +8,7 @@ class n_of_x_Strategy(Abstract_Strategy):
     def __init__(self, Visibility : Abstract_Vis, threshold : float, minTravel : int):
         super().__init__(Visibility)
         self.threshold = threshold
-        self.minTravel = minTravel
+        self.n = minTravel
         self.isBackTrack = False
         self.isParking = False
 
@@ -24,7 +24,7 @@ class n_of_x_Strategy(Abstract_Strategy):
         
 
         #Travel a minimum of N spots.
-        if self.pos < self.minTravel:
+        if self.pos < self.n:
             self.pos += 1
             return self.pos
         
@@ -50,8 +50,11 @@ class n_of_x_Strategy(Abstract_Strategy):
         #Only comes here if it's passed initial N spots and it is too busy.
         self.isParking = True
         return self.pos
-            
 
     def resetStrat(self):
         super().resetStrat()
         self.isBackTrack = False
+        self.isParking = False
+
+    def getName(self):
+        return "Density threshold"

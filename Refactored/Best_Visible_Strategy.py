@@ -30,3 +30,6 @@ class BestVisibleSpotStrategy(Abstract_Strategy):
     
     def resetStrat(self):
         super().resetStrat()
+
+    def getName(self):
+        return "Best visible spot"

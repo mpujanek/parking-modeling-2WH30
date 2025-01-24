@@ -16,3 +16,6 @@ class ParkFirstAvailableSpot(Abstract_Strategy):
     
     def resetStrat(self):
         return super().resetStrat()
+    
+    def getName(self):
+        return "First available spot"

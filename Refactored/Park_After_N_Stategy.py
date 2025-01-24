@@ -19,7 +19,7 @@ class Park_After_N_Strategy(Abstract_Strategy):
             self.pos -= 1
             return self.pos
         
-        if self.pos < self.n:
+        if self.pos < self.n - 1:
             self.pos += 1
             return self.pos
         
@@ -38,3 +38,6 @@ class Park_After_N_Strategy(Abstract_Strategy):
     def resetStrat(self):
         super().resetStrat()
         self.isBacktrack = False
+
+    def getName(self):
+        return "Park after N spots"

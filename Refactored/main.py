@@ -14,19 +14,27 @@ import pandas as pd
 import pandas
 
 nrOfSpots = 100
-nrOfTrials = 100
+nrOfTrials = 1000
 # dist = Linear_PropDist(nrOfSpots)
 dist = distDependentProb(nrOfSpots, 30)
 vis = SimpleVis(visionRange=1)
 matrix = PMatrix(nrOfSpots, dist)
-strats = [BackTrack_Strategy(vis), BestVisibleSpotStrategy(vis), n_of_x_Strategy(vis, 1, nrOfSpots/3),
-           Park_After_N_Strategy(vis, nrOfSpots/3), ParkFirstAvailableSpot(vis)]
+drivingSpeed = 1
+walkingSpeed = 2
+N = round(nrOfSpots * 0.8)
+density_threshold = 0.6
+# strats = [n_of_x_Strategy(vis, 0.2, N), n_of_x_Strategy(vis, 0.4, N), n_of_x_Strategy(vis, 0.6, N), n_of_x_Strategy(vis, 0.8, N), n_of_x_Strategy(vis, 0.9, N)]
+# strats = [Park_After_N_Strategy(vis, nrOfSpots * 0.6), Park_After_N_Strategy(vis, nrOfSpots * 0.7), Park_After_N_Strategy(vis, nrOfSpots * 0.8), Park_After_N_Strategy(vis, nrOfSpots * 0.9), Park_After_N_Strategy(vis, nrOfSpots)]
+# strats = [ParkFirstAvailableSpot(vis), BackTrack_Strategy(vis), BestVisibleSpotStrategy(vis), n_of_x_Strategy(vis, density_threshold, N), Park_After_N_Strategy(vis, N)]
+# strats = [ParkFirstAvailableSpot(vis), BackTrack_Strategy(vis), BestVisibleSpotStrategy(vis), n_of_x_Strategy(vis, 0.2, 0.8 * nrOfSpots), Park_After_N_Strategy(vis, 0.8 * nrOfSpots)]
+# strats = [Park_After_N_Strategy(vis, 66), Park_After_N_Strategy(vis, 80)]
+# strats = [ParkFirstAvailableSpot(vis), BackTrack_Strategy(vis), BestVisibleSpotStrategy(vis)]
+strats = [n_of_x_Strategy(vis, 0.2, N), BackTrack_Strategy(vis)]
 results = {}
 
 #Generate dictionary to append results to.
-for strat in strats:
-    strat_name = type(strat).__name__
-    results[strat_name] = []
+for count, strat in enumerate(strats):
+    results[count] = []
 
 print("Running " + str(nrOfTrials) + " simulation with " + str(nrOfSpots) + " parking spots.")
 
@@ -41,27 +49,29 @@ print("Running " + str(nrOfTrials) + " simulation with " + str(nrOfSpots) + " pa
 #             quit()
 #         results[strat_name].append(result)
 #         strat.resetStrat()
+# print(pd.DataFrame(results))
 
 # test a spread of parameters
 df_expectation_1 = pd.DataFrame()
 df_std_1 = pd.DataFrame()
 
-for strat in strats:
-    df_expectation_1[type(strat).__name__] = pd.Series(dtype=float)
-    df_std_1[type(strat).__name__] = pd.Series(dtype=float)
+for count, strat in enumerate(strats):
+    df_expectation_1[count] = pd.Series(dtype=float)
+    df_std_1[count] = pd.Series(dtype=float)
 
 df = pandas.DataFrame()
-for strat in strats:
-    df[type(strat).__name__] = pd.Series(dtype=float)
-    df[type(strat).__name__] = pd.Series(dtype=float)
+for count, strat in enumerate(strats):
+    df[count] = pd.Series(dtype=float)
+    df[count] = pd.Series(dtype=float)
 
 #Bernouli population
 for b in range(100):
     matrix.setDist(Bernouli_Probdist_Old(nrOfSpots, b))
     for i in range(nrOfTrials):
         matrix.regenarateMatrix()
-        for strat in strats:
-            df.at[i, type(strat).__name__] = Simulation(strat, matrix, verbose=False).getInfo()['score']
+        # Simulation(strat, matrix, verbose=False).print_status(0, 0)
+        for count, strat in enumerate(strats):
+            df.at[i, count] = Simulation(strat, matrix, verbose=False, drivingSpeed=drivingSpeed, walkingSpeed=walkingSpeed).getInfo()['score']
             strat.resetStrat()
         # print(df)
     df_expectation_1.loc[b] = df.describe().loc['mean']
@@ -69,25 +79,27 @@ for b in range(100):
     #Clear dataframe
     df = df.iloc[0:0]
 
+
+
 df_expectation_2 = pd.DataFrame()
 df_std_2 = pd.DataFrame()
 
-for strat in strats:
-    df_expectation_2[type(strat).__name__] = pd.Series(dtype=float)
-    df_std_2[type(strat).__name__] = pd.Series(dtype=float)
+for count, strat in enumerate(strats):
+    df_expectation_2[count] = pd.Series(dtype=float)
+    df_std_2[count] = pd.Series(dtype=float)
 
 df = pandas.DataFrame()
-for strat in strats:
-    df[type(strat).__name__] = pd.Series(dtype=float)
-    df[type(strat).__name__] = pd.Series(dtype=float)
+for count, strat in enumerate(strats):
+    df[count] = pd.Series(dtype=float)
+    df[count] = pd.Series(dtype=float)
 
 #Exponential population
 for b in range(100):
     matrix.setDist(distDependentProb(nrOfSpots, b))
     for i in range(nrOfTrials):
         matrix.regenarateMatrix()
-        for strat in strats:
-            df.at[i, type(strat).__name__] = Simulation(strat, matrix, verbose=False).getInfo()['score']
+        for count, strat in enumerate(strats):
+            df.at[i, count] = Simulation(strat, matrix, verbose=False, drivingSpeed=drivingSpeed, walkingSpeed=walkingSpeed).getInfo()['score']
             strat.resetStrat()
         # print(df)
     df_expectation_2.loc[b] = df.describe().loc['mean']
@@ -95,77 +107,50 @@ for b in range(100):
     #Clear dataframe
     df = df.iloc[0:0]
 
-
 import matplotlib.pyplot as plt
 
-B=range(100)
 
-fig, axs = plt.subplots(1, 5, figsize=(15, 5), sharey=True)
+B= [x/100 for x in range(100)]
 
-print(df_std_1)
-print(df_expectation_1)
+fig, axs = plt.subplots(1, len(strats), sharey=True, figsize=(5 * len(strats),5))
 
-# # first available spot strategy
-# axs[0].scatter(B, df_std_1["ParkFirstAvailableSpot"], label="distance independent")
-# axs[0].scatter(B, df_std_2["ParkFirstAvailableSpot"], label="distance dependent")
-# axs[0].set_title("First available spot")
-# axs[0].set_xlabel("busyness, b")
-# axs[0].legend(loc="best")
-# axs[0].set_ylabel("Variance of total time, V[T^t]")
+axs[0].set_ylabel("Average parking time")
+for count, strat in enumerate(strats):
 
-# # greedy strategy
-# axs[1].scatter(B, df_std_1["BackTrack_Strategy"], label="distance independent")
-# axs[1].scatter(B, df_std_2["BackTrack_Strategy"], label="distance dependent")
-# axs[1].set_title("Greedy strategy")
-# axs[1].set_xlabel("busyness, b")
-# axs[1].legend(loc="best")
-# #axs[1].set_ylabel("E[T^t]")
+    axs[count].scatter(B, df_expectation_1[count], label="distance independent")
+    axs[count].scatter(B, df_expectation_2[count], label="distance dependent")
+    axs[count].set_title(strat.getName())
+    axs[count].set_xlabel("busyness, b")
+    if (type(strat).__name__ == "n_of_x_Strategy"):
+        axs[count].legend(loc="best", title=f"Skipping first {strat.n} spots\nThreshold = {strat.threshold}")
+    elif (type(strat).__name__ == "Park_After_N_Strategy"):
+        axs[count].legend(loc="best", title=f"Skipping first {strat.n} spots")
+    else:
+        axs[count].legend(loc="best")
 
-# # best visible spot strategy
-# axs[2].scatter(B, df_std_1["BestVisibleSpotStrategy"], label="distance independent")
-# axs[2].scatter(B, df_std_2["BestVisibleSpotStrategy"], label="distance dependent")
-# axs[2].set_title("Best visible spot")
-# axs[2].set_xlabel("busyness, b")
-# axs[2].legend(loc="best")
-#axs[2].set_ylabel("E[T^t]")
-#axs[2].set_ylim(-10, 10)  # Limit y-axis for better visibility
+plt.tight_layout()
 
-# first available spot strategy
-axs[0].scatter(B, df_expectation_1["ParkFirstAvailableSpot"], label="distance independent")
-axs[0].scatter(B, df_expectation_2["ParkFirstAvailableSpot"], label="distance dependent")
-axs[0].set_title("First available spot")
-axs[0].set_xlabel("busyness, b")
-axs[0].legend(loc="best")
-axs[0].set_ylabel("Variance of total time, V[T^t]")
+# Show the plot
+plt.show()
 
-# greedy strategy
-axs[1].scatter(B, df_expectation_1["BackTrack_Strategy"], label="distance independent")
-axs[1].scatter(B, df_expectation_2["BackTrack_Strategy"], label="distance dependent")
-axs[1].set_title("Greedy strategy")
-axs[1].set_xlabel("busyness, b")
-axs[1].legend(loc="best")
-#axs[1].set_ylabel("E[T^t]")
 
-# best visible spot strategy
-axs[2].scatter(B, df_expectation_1["BestVisibleSpotStrategy"], label="distance independent")
-axs[2].scatter(B, df_expectation_2["BestVisibleSpotStrategy"], label="distance dependent")
-axs[2].set_title("Best visible spot")
-axs[2].set_xlabel("busyness, b")
-axs[2].legend(loc="best")
+fig, axs = plt.subplots(1, len(strats), sharey=True, figsize=(5 * len(strats),5))
 
-axs[3].scatter(B, df_expectation_1["n_of_x_Strategy"], label="distance independent")
-axs[3].scatter(B, df_expectation_2["n_of_x_Strategy"], label="distance dependent")
-axs[3].set_title("n_of_x_Strategy")
-axs[3].set_xlabel("busyness, b")
-axs[3].legend(loc="best")
+axs[0].set_ylabel("Standard deviation")
+for count, strat in enumerate(strats):
 
-axs[4].scatter(B, df_expectation_1["Park_After_N_Strategy"], label="distance independent")
-axs[4].scatter(B, df_expectation_2["Park_After_N_Strategy"], label="distance dependent")
-axs[4].set_title("Park_After_N_Strategy")
-axs[4].set_xlabel("busyness, b")
-axs[4].legend(loc="best")
+    axs[count].scatter(B, df_std_1[count], label="distance independent")
+    axs[count].scatter(B, df_std_2[count], label="distance dependent")
+    axs[count].set_title(strat.getName())
+    axs[count].set_xlabel("busyness, b")
+    if (type(strat).__name__ == "n_of_x_Strategy"):
+        axs[count].legend(loc="best", title=f"Skipping first {strat.n} spots\nThreshold = {strat.threshold}")
+    elif (type(strat).__name__ == "Park_After_N_Strategy"):
+        axs[count].legend(loc="best", title=f"Skipping first {strat.n} spots")
+    else:
+        axs[count].legend(loc="best")
 
-# Adjust spacing between subplots
+
 plt.tight_layout()
 
 # Show the plot
