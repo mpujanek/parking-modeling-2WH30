@@ -40,4 +40,4 @@ class Park_After_N_Strategy(Abstract_Strategy):
         self.isBacktrack = False
 
     def getName(self):
-        return "Park after N spots"
+        return "Park after k spots"
